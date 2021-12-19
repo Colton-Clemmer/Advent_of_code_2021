@@ -1,21 +1,19 @@
 import System.IO
 
-getTup :: String -> (String, Int)
-getTup s = (head $ words s, read $ last $ words s)
-
-movement :: [(String, Int)] -> (Int, Int) -> (Int, Int)
-movement [] position = position
-movement (currentCommand:commands) (horizontal, depth) =
-    movement commands $ moveSub currentCommand (horizontal, depth)
-    where
-        moveSub :: (String, Int) -> (Int, Int) -> (Int, Int)
-        moveSub (command, amount) (horizontal, depth)
+moveSub :: [(String, Int)] -> (Int, Int)
+moveSub = aux (0, 0)
+    where 
+    aux :: (Int, Int) -> [(String, Int)] -> (Int, Int)
+    aux position [] = position
+    aux (horizontal, depth) (currentCommand:commands) =
+        aux (aux2 currentCommand (horizontal, depth)) commands 
+        where
+        aux2 :: (String, Int) -> (Int, Int) -> (Int, Int)
+        aux2 (command, amount) (horizontal, depth)
             | command == "forward" = (horizontal + amount, depth)
             | command == "down" = (horizontal, depth + amount)
             | otherwise = (horizontal, depth - amount)
 
-testData = [("forward", 5), ("down", 5), ("forward", 8), ("up", 3), ("down", 8), ("forward", 2)]
--- main = print $ uncurry (*) $ (\commands -> movement commands (0, 0)) testData
 main = do
     contents <- readFile "./advent_2.dat"
-    print $ uncurry (*) $ (\commands -> movement commands (0, 0)) $ map getTup $ lines contents
+    print $ uncurry (*) $ moveSub $ map (\s -> (head $ words s, read $ last $ words s)) $ lines contents
